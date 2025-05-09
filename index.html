@@ -7,9 +7,10 @@
     <style>
         @font-face {
             font-family: 'MyCursiveFont';
-            src: url('./myfont.ttf') format('truetype');
+            src: url('myfont.ttf') format('truetype');
             font-weight: bold;
             font-style: normal;
+            font-display: swap;
         }
         
         body, html {
@@ -17,7 +18,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            font-family: 'MyCursiveFont', cursive;
+            font-family: 'MyCursiveFont', cursive, Arial, sans-serif;
         }
         
         .container {
@@ -87,5 +88,16 @@
             Kupal Ka!
         </div>
     </div>
+    
+    <!-- Add a script to check if the font loaded correctly -->
+    <script>
+        document.fonts.ready.then(function() {
+            if (document.fonts.check('1em MyCursiveFont')) {
+                console.log('MyCursiveFont loaded successfully!');
+            } else {
+                console.log('MyCursiveFont failed to load, using fallback fonts.');
+            }
+        });
+    </script>
 </body>
 </html>
