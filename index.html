@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beautiful Cursive Text</title>
+    <title>TUNG TUNG TUNG TUNG TUNG SAHUR</title>
     <style>
         @font-face {
             font-family: 'MyCursiveFont';
@@ -43,15 +43,28 @@
         }
         
         .text {
-            font-size: 10vw;
-            color: rgba(255, 255, 255, 0.8);
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            font-size: 15vw;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4); 
             text-align: center;
             padding: 20px;
-            max-width: 80%;
+            max-width: 90%;
             font-weight: 900;
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+            -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.4);
             letter-spacing: 0.05em;
+        }
+        
+        @media (max-width: 767px) {
+            .text {
+                font-size: 20vw; 
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 370px) {
+            .text {
+                font-size: 24vw;
+            }
         }
         
         @keyframes gradient {
