@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Doors Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .doors-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .door {
+            width: 120px;
+            height: 220px;
+            background-color: #964B00;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            margin: 0 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .door:hover {
+            transform: scale(1.05);
+        }
+        .door.selected {
+            border: 4px solid #FFC107;
+            box-sizing: border-box;
+        }
+        .door.revealed-win {
+            background-color: #4CAF50;
+        }
+        .door.revealed-lose {
+            background-color: #f44336;
+        }
+        .door-knob {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            right: 15px;
+            top: 110px;
+        }
+        .door-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+        .message {
+            font-size: 20px;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+        .actions {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #388E3C;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .stats {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .door-content {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 64px;
+        }
+        .reset-button {
+            background-color: #2196F3;
+        }
+        .reset-button:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <h1>Three Doors Game</h1>
+    <div class="game-container">
+        <div class="message">Choose one of the three doors!</div>
+        <div class="doors-container">
+            <div class="door" id="door1">
+                <div class="door-number">1</div>
+                <div class="door-knob"></div>
+                <div class="door-content" id="content1"></div>
+            </div>
+            <div class="door" id="door2">
+                <div class="door-number">2</div>
+                <div class="door-knob"></div>
+                <div class="door-content" id="content2"></div>
+            </div>
+            <div class="door" id="door3">
+                <div class="door-number">3</div>
+                <div class="door-knob"></div>
+                <div class="door-content" id="content3"></div>
+            </div>
+        </div>
+        <div class="actions">
+            <button id="stick-button" disabled>Stick with my choice</button>
+            <button id="switch-button" disabled>Switch doors</button>
+            <button id="reset-button" class="reset-button">Play Again</button>
+        </div>
+        <div class="stats">
+            <p>Games played: <span id="games-played">0</span></p>
+            <p>Games won: <span id="games-won">0</span></p>
+            <p>Win rate: <span id="win-rate">0%</span></p>
+            <p>Switch wins: <span id="switch-wins">0</span> / <span id="switch-games">0</span> (<span id="switch-rate">0%</span>)</p>
+            <p>Stick wins: <span id="stick-wins">0</span> / <span id="stick-games">0</span> (<span id="stick-rate">0%</span>)</p>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            winningDoor: null,
+            playerChoice: null,
+            revealedDoor: null,
+            gameStage: 'selection', // 'selection', 'reveal', 'final'
+            gamesPlayed: 0,
+            gamesWon: 0,
+            switchGames: 0,
+            switchWins: 0,
+            stickGames: 0,
+            stickWins: 0
+        };
+
+        // DOM elements
+        const doorElements = document.querySelectorAll('.door');
+        const messageElement = document.querySelector('.message');
+        const stickButton = document.getElementById('stick-button');
+        const switchButton = document.getElementById('switch-button');
+        const resetButton = document.getElementById('reset-button');
+
+        // Stats elements
+        const gamesPlayedElement = document.getElementById('games-played');
+        const gamesWonElement = document.getElementById('games-won');
+        const winRateElement = document.getElementById('win-rate');
+        const switchWinsElement = document.getElementById('switch-wins');
+        const switchGamesElement = document.getElementById('switch-games');
+        const switchRateElement = document.getElementById('switch-rate');
+        const stickWinsElement = document.getElementById('stick-wins');
+        const stickGamesElement = document.getElementById('stick-games');
+        const stickRateElement = document.getElementById('stick-rate');
+
+        // Initialize game
+        initGame();
+
+        // Event listeners
+        doorElements.forEach((door, index) => {
+            door.addEventListener('click', () => selectDoor(index + 1));
+        });
+
+        stickButton.addEventListener('click', () => finalizeChoice('stick'));
+        switchButton.addEventListener('click', () => finalizeChoice('switch'));
+        resetButton.addEventListener('click', resetGame);
+
+        function initGame() {
+            // Reset door appearances
+            doorElements.forEach(door => {
+                door.className = 'door';
+                door.querySelector('.door-content').style.display = 'none';
+            });
+
+            // Set winning door (1, 2, or 3)
+            gameState.winningDoor = Math.floor(Math.random() * 3) + 1;
+            gameState.playerChoice = null;
+            gameState.revealedDoor = null;
+            gameState.gameStage = 'selection';
+
+            // Update content of doors
+            for (let i = 1; i <= 3; i++) {
+                const contentElement = document.getElementById(`content${i}`);
+                contentElement.textContent = i === gameState.winningDoor ? '🏆' : '❌';
+            }
+
+            // Update UI
+            messageElement.textContent = 'Choose one of the three doors!';
+            stickButton.disabled = true;
+            switchButton.disabled = true;
+            
+            console.log('Winning door is:', gameState.winningDoor);
+        }
+
+        function selectDoor(doorNumber) {
+            if (gameState.gameStage !== 'selection') return;
+
+            // Clear previous selections
+            doorElements.forEach(door => door.classList.remove('selected'));
+            
+            // Select this door
+            doorElements[doorNumber - 1].classList.add('selected');
+            gameState.playerChoice = doorNumber;
+            
+            // Reveal a losing door (not the player's choice and not the winning door)
+            setTimeout(() => revealLosingDoor(), 500);
+        }
+
+        function revealLosingDoor() {
+            // Find a door that is not the player's choice and not the winning door
+            let doorsToChooseFrom = [1, 2, 3].filter(
+                door => door !== gameState.playerChoice && door !== gameState.winningDoor
+            );
+            
+            // If player happened to pick the winning door, there are two losing doors to choose from
+            // Otherwise, there's only one door we can reveal (the other losing door)
+            gameState.revealedDoor = doorsToChooseFrom[Math.floor(Math.random() * doorsToChooseFrom.length)];
+            
+            // Reveal this door
+            const doorElement = doorElements[gameState.revealedDoor - 1];
+            doorElement.classList.add('revealed-lose');
+            doorElement.querySelector('.door-content').style.display = 'block';
+            
+            // Update game state and UI
+            gameState.gameStage = 'reveal';
+            messageElement.textContent = `Door ${gameState.revealedDoor} has been revealed. Would you like to stick with Door ${gameState.playerChoice} or switch to the other closed door?`;
+            stickButton.disabled = false;
+            switchButton.disabled = false;
+        }
+
+        function finalizeChoice(action) {
+            if (gameState.gameStage !== 'reveal') return;
+
+            let finalChoice;
+            if (action === 'stick') {
+                finalChoice = gameState.playerChoice;
+                gameState.stickGames++;
+            } else {
+                // Switch to the other unopened door
+                finalChoice = [1, 2, 3].find(
+                    door => door !== gameState.playerChoice && door !== gameState.revealedDoor
+                );
+                gameState.switchGames++;
+            }
+
+            // Update game state
+            gameState.gameStage = 'final';
+            gameState.gamesPlayed++;
+
+            // Reveal all doors
+            doorElements.forEach((door, index) => {
+                const doorNumber = index + 1;
+                door.querySelector('.door-content').style.display = 'block';
+                
+                if (doorNumber === gameState.winningDoor) {
+                    door.classList.add('revealed-win');
+                } else if (doorNumber !== gameState.revealedDoor) { // Don't re-add the class to already revealed door
+                    door.classList.add('revealed-lose');
+                }
+            });
+
+            // Check if player won
+            const won = finalChoice === gameState.winningDoor;
+            if (won) {
+                gameState.gamesWon++;
+                if (action === 'stick') gameState.stickWins++;
+                if (action === 'switch') gameState.switchWins++;
+                messageElement.textContent = `Congratulations! You won by ${action === 'stick' ? 'sticking with' : 'switching to'} Door ${finalChoice}!`;
+            } else {
+                messageElement.textContent = `Sorry! You lost by ${action === 'stick' ? 'sticking with' : 'switching to'} Door ${finalChoice}. The prize was behind Door ${gameState.winningDoor}.`;
+            }
+
+            // Disable buttons
+            stickButton.disabled = true;
+            switchButton.disabled = true;
+
+            // Update stats
+            updateStats();
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        function updateStats() {
+            gamesPlayedElement.textContent = gameState.gamesPlayed;
+            gamesWonElement.textContent = gameState.gamesWon;
+            
+            const winRate = gameState.gamesPlayed === 0 ? 0 : Math.round((gameState.gamesWon / gameState.gamesPlayed) * 100);
+            winRateElement.textContent = `${winRate}%`;
+            
+            switchWinsElement.textContent = gameState.switchWins;
+            switchGamesElement.textContent = gameState.switchGames;
+            const switchRate = gameState.switchGames === 0 ? 0 : Math.round((gameState.switchWins / gameState.switchGames) * 100);
+            switchRateElement.textContent = `${switchRate}%`;
+            
+            stickWinsElement.textContent = gameState.stickWins;
+            stickGamesElement.textContent = gameState.stickGames;
+            const stickRate = gameState.stickGames === 0 ? 0 : Math.round((gameState.stickWins / gameState.stickGames) * 100);
+            stickRateElement.textContent = `${stickRate}%`;
+        }
+    </script>
+</body>
+</html>
