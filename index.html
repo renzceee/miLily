@@ -15,10 +15,13 @@
             margin: 0;
             background-color: #f5f5f5;
             text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
         }
         h1 {
             color: #333;
             margin-bottom: 20px;
+            font-size: clamp(24px, 5vw, 36px);
         }
         .game-container {
             display: flex;
@@ -33,16 +36,17 @@
             justify-content: space-around;
             width: 100%;
             margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .door {
-            width: 120px;
-            height: 220px;
+            width: clamp(80px, 25vw, 120px);
+            height: clamp(160px, 40vw, 220px);
             background-color: #964B00;
             border-radius: 10px;
             position: relative;
             cursor: pointer;
             transition: transform 0.3s, background-color 0.3s;
-            margin: 0 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .door:hover {
@@ -60,40 +64,44 @@
         }
         .door-knob {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: clamp(12px, 5vw, 20px);
+            height: clamp(12px, 5vw, 20px);
             background-color: #FFD700;
             border-radius: 50%;
-            right: 15px;
-            top: 110px;
+            right: 15%;
+            top: 50%;
         }
         .door-number {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 36px;
+            font-size: clamp(24px, 8vw, 36px);
             color: #FFD700;
             font-weight: bold;
         }
         .message {
-            font-size: 20px;
+            font-size: clamp(16px, 4vw, 20px);
             margin: 20px 0;
             min-height: 60px;
         }
         .actions {
             margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
         button {
             padding: 10px 20px;
-            margin: 0 10px;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
+            min-width: 120px;
         }
         button:hover {
             background-color: #388E3C;
@@ -104,7 +112,7 @@
         }
         .stats {
             margin-top: 20px;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
         }
         .door-content {
             display: none;
@@ -112,13 +120,95 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 64px;
+            font-size: clamp(36px, 12vw, 64px);
         }
         .reset-button {
             background-color: #2196F3;
         }
         .reset-button:hover {
             background-color: #0b7dda;
+        }
+        .auto-run-container {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            width: 100%;
+            max-width: 600px;
+        }
+        .auto-run-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .auto-run-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: #2196F3;
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        .strategy-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .auto-run-speed {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .speed-slider {
+            width: 100px;
+        }
+        @media (max-width: 600px) {
+            .auto-run-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .auto-run-title {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -148,6 +238,33 @@
             <button id="switch-button" disabled>Switch doors</button>
             <button id="reset-button" class="reset-button">Play Again</button>
         </div>
+        
+        <div class="auto-run-container">
+            <div class="auto-run-title">Auto-Run Simulator</div>
+            <div class="auto-run-controls">
+                <div class="strategy-switch">
+                    <span>Strategy:</span>
+                    <button id="strategy-stick" class="strategy-button">Always Stick</button>
+                    <button id="strategy-switch" class="strategy-button">Always Switch</button>
+                </div>
+                
+                <div class="auto-run-speed">
+                    <span>Speed:</span>
+                    <input type="range" min="1" max="10" value="5" class="speed-slider" id="speed-slider">
+                </div>
+                
+                <div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-run-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span id="auto-run-status">Auto-Run Off</span>
+                </div>
+                
+                <button id="run-100-games">Run 100 Games</button>
+            </div>
+        </div>
+        
         <div class="stats">
             <p>Games played: <span id="games-played">0</span></p>
             <p>Games won: <span id="games-won">0</span></p>
@@ -169,7 +286,11 @@
             switchGames: 0,
             switchWins: 0,
             stickGames: 0,
-            stickWins: 0
+            stickWins: 0,
+            autoRunActive: false,
+            autoRunStrategy: 'switch', // 'switch' or 'stick'
+            autoRunSpeed: 5,
+            autoRunInterval: null
         };
 
         // DOM elements
@@ -178,6 +299,14 @@
         const stickButton = document.getElementById('stick-button');
         const switchButton = document.getElementById('switch-button');
         const resetButton = document.getElementById('reset-button');
+
+        // Auto run elements
+        const autoRunToggle = document.getElementById('auto-run-toggle');
+        const autoRunStatus = document.getElementById('auto-run-status');
+        const strategyStickButton = document.getElementById('strategy-stick');
+        const strategySwitchButton = document.getElementById('strategy-switch');
+        const speedSlider = document.getElementById('speed-slider');
+        const run100GamesButton = document.getElementById('run-100-games');
 
         // Stats elements
         const gamesPlayedElement = document.getElementById('games-played');
@@ -192,15 +321,48 @@
 
         // Initialize game
         initGame();
+        updateStrategyButtons();
 
         // Event listeners
         doorElements.forEach((door, index) => {
-            door.addEventListener('click', () => selectDoor(index + 1));
+            door.addEventListener('click', () => {
+                if (!gameState.autoRunActive) {
+                    selectDoor(index + 1);
+                }
+            });
         });
 
-        stickButton.addEventListener('click', () => finalizeChoice('stick'));
-        switchButton.addEventListener('click', () => finalizeChoice('switch'));
+        stickButton.addEventListener('click', () => {
+            if (!gameState.autoRunActive) {
+                finalizeChoice('stick');
+            }
+        });
+        
+        switchButton.addEventListener('click', () => {
+            if (!gameState.autoRunActive) {
+                finalizeChoice('switch');
+            }
+        });
+        
         resetButton.addEventListener('click', resetGame);
+
+        // Auto-run event listeners
+        autoRunToggle.addEventListener('change', toggleAutoRun);
+        strategyStickButton.addEventListener('click', () => {
+            gameState.autoRunStrategy = 'stick';
+            updateStrategyButtons();
+        });
+        strategySwitchButton.addEventListener('click', () => {
+            gameState.autoRunStrategy = 'switch';
+            updateStrategyButtons();
+        });
+        speedSlider.addEventListener('input', () => {
+            gameState.autoRunSpeed = parseInt(speedSlider.value);
+            if (gameState.autoRunActive) {
+                resetAutoRunInterval();
+            }
+        });
+        run100GamesButton.addEventListener('click', () => runMultipleGames(100));
 
         function initGame() {
             // Reset door appearances
@@ -240,7 +402,7 @@
             gameState.playerChoice = doorNumber;
             
             // Reveal a losing door (not the player's choice and not the winning door)
-            setTimeout(() => revealLosingDoor(), 500);
+            setTimeout(() => revealLosingDoor(), gameState.autoRunActive ? 100 : 500);
         }
 
         function revealLosingDoor() {
@@ -263,6 +425,13 @@
             messageElement.textContent = `Door ${gameState.revealedDoor} has been revealed. Would you like to stick with Door ${gameState.playerChoice} or switch to the other closed door?`;
             stickButton.disabled = false;
             switchButton.disabled = false;
+            
+            // If in auto-run mode, automatically make the choice
+            if (gameState.autoRunActive) {
+                setTimeout(() => {
+                    finalizeChoice(gameState.autoRunStrategy);
+                }, 100);
+            }
         }
 
         function finalizeChoice(action) {
@@ -313,10 +482,23 @@
 
             // Update stats
             updateStats();
+            
+            // If auto-run is active, start another game after delay
+            if (gameState.autoRunActive) {
+                setTimeout(resetGame, 200);
+            }
         }
 
         function resetGame() {
             initGame();
+            
+            // If auto-run is active, immediately select a door
+            if (gameState.autoRunActive) {
+                setTimeout(() => {
+                    const randomDoor = Math.floor(Math.random() * 3) + 1;
+                    selectDoor(randomDoor);
+                }, 100);
+            }
         }
 
         function updateStats() {
@@ -336,6 +518,28 @@
             const stickRate = gameState.stickGames === 0 ? 0 : Math.round((gameState.stickWins / gameState.stickGames) * 100);
             stickRateElement.textContent = `${stickRate}%`;
         }
-    </script>
-</body>
-</html>
+        
+        // Auto-run functions
+        function toggleAutoRun() {
+            gameState.autoRunActive = autoRunToggle.checked;
+            autoRunStatus.textContent = gameState.autoRunActive ? 'Auto-Run On' : 'Auto-Run Off';
+            
+            if (gameState.autoRunActive) {
+                // Start auto-run
+                strategyStickButton.disabled = true;
+                strategySwitchButton.disabled = true;
+                resetGame(); // Start fresh
+            } else {
+                // Stop auto-run
+                strategyStickButton.disabled = false;
+                strategySwitchButton.disabled = false;
+                if (gameState.autoRunInterval) {
+                    clearInterval(gameState.autoRunInterval);
+                    gameState.autoRunInterval = null;
+                }
+            }
+        }
+        
+        function updateStrategyButtons() {
+            if (gameState.autoRunStrategy === 'stick') {
+                strategyStickButton.style.backgroundColor = '#4CAF5
